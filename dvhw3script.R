@@ -37,6 +37,8 @@ ggplot(asia, aes(x=gini, y=..density.., fill=region_un_sub)) +
   scale_fill_viridis() +
   scale_fill_viridis(discrete = TRUE) 
 #I admit it is not an incredible color palette - but I can SEE it!
+ggsave("Figs/income_inequality_asia.jpeg")
+
 
 europe <- wiid %>%
   filter(region_un == "Europe") %>%
@@ -49,6 +51,7 @@ ggplot(europe, aes(x=country, y=mean_gini)) + geom_point() + coord_flip() +
        y = "Mean Gini") + 
   scale_fill_viridis() +
   scale_fill_viridis(discrete = TRUE) 
+ggsave("Figs/europe_gini_scatter.jpeg")
 
 africa <- wiid %>%
   filter(region_un == "Africa") %>%
@@ -74,4 +77,16 @@ ggplot(africa, aes(x=country, y=gini_diff, fill=neg)) +
   labs(title = "Difference from Mean Gini Value By African Country",
     x = " Country",
        y = "Difference from Mean (47)")
+ggsave("Figs/diff_mean_gini_africa.jpeg")
 
+
+ggplot(wiid, aes(x=gini, y=..density.., fill=region_un)) + geom_histogram(alpha=.6) +
+  scale_fill_manual(values=c("#f0e442", "#cc79a7", "#d55e00", "#009e73", "#0072b2")) +
+  theme_minimal() +
+  labs(x = "Gini Coefficient",
+       fill = "Region",
+       y = "Density")
+##color-blind friendly
+
+
+  
