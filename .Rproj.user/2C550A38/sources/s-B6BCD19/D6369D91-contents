@@ -1,0 +1,42 @@
+library(tidyverse)
+library(haven)
+
+#load data
+df <- read_dta("debt_699.dta") %>%
+  na.omit() #drop all rows with missing values - this solves the error!
+
+m1 <- lm(debtx ~ growth + ue + +cog + enop, data = df) #we don't need to drop n.a.s here
+summary(m1)
+
+m2 <- lm(debtx ~ growth + ue + cog, data = df)
+summary(m2)
+Mdebtx <- resid(m2)
+summary(Mdebtx)
+
+m3 <- lm(enop ~ growth + ue + cog, data = df)
+summary(m3)
+Menop <- resid(m3)
+summary(Menop)
+
+dat <- data.frame("Mdebtx" = Mdebtx, "Menop" = Menop) #make it a dataframe
+m4 <- lm(Mdebtx ~ Menop, data = dat) #now we do the regression
+summary(m4) #look how pretty
+
+m5 <- lm(debtx ~ growth, data=df, na.actino=na.omit)
+
+m <- rnorm(1)
+
+df$growth2 = df$growth + m
+glimpse(df$growth2)
+
+m2e <- lm(debtx ~ growth2 + ue + cog, data = df, na.action=na.omit)
+summary(m2e)
+
+m5e <- lm(debtx ~ growth2, data=df, na.actino=na.omit)
+summary(m5e)
+
+
+
+
+summary(s.model1)
+summary(s.model2)

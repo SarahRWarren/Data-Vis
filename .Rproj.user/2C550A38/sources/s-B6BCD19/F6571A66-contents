@@ -1,0 +1,77 @@
+## Data Visualization ICPSR Summer 2021> 
+## Name: Sarah Warren
+## Date: June 30
+
+#load packages
+library(tidyverse)
+library(readxl)
+library(viridis) #I am partially color blind, so yay viridis!
+
+#############
+movie <- read_csv("movie.csv") %>%
+  na.omit
+head(movie)
+tail(movie)
+
+ggplot(movie, aes(x=imdb_score, color=color, fill=color)) + 
+  geom_histogram() + theme_minimal() 
+
+ggplot(movie, aes(x=imdb_score, y=..density..)) + facet_grid(vars(color)) +
+  geom_histogram() + theme_minimal() 
+
+
+###########
+
+wiid <- read_excel("WIID_31MAY2021_0.xlsx")
+asia <- wiid %>%
+  filter(region_un == "Asia") %>%
+  glimpse()
+
+ggplot(asia, aes(x=gini, y=..density.., fill=region_un_sub)) +
+  geom_density(alpha=.3) + 
+  theme_minimal() + 
+  labs(title = "Income Inequality in Asia", 
+       fill = "Sub-Region",
+       x = "Gini Coefficient",
+       y = "Density") + 
+  scale_fill_viridis() +
+  scale_fill_viridis(discrete = TRUE) 
+#I admit it is not an incredible color palette - but I can SEE it!
+
+europe <- wiid %>%
+  filter(region_un == "Europe") %>%
+  group_by(country) %>%
+  summarize(mean_gini = mean(gini, na.rm = TRUE))
+
+ggplot(europe, aes(x=country, y=mean_gini)) + geom_point() + coord_flip() +
+  theme_minimal() + theme(text = element_text(size=6)) +
+  labs(x = " ",
+       y = "Mean Gini") + 
+  scale_fill_viridis() +
+  scale_fill_viridis(discrete = TRUE) 
+
+africa <- wiid %>%
+  filter(region_un == "Africa") %>%
+  group_by(country) %>%
+  summarize(gini = gini, mean_gini = mean(gini, na.rm = TRUE)) %>%
+  ungroup() %>%
+  summarize(country = country, mean_gini = mean_gini, country_mean_gini = mean(gini, na.rm = TRUE)) %>%
+  glimpse()
+
+africa$gini_diff <- (africa$mean_gini - africa$country_mean_gini)
+#values > mean are positive, < mean are negative
+neg <- ifelse(africa$gini_diff<0,1,0) #for graph
+
+africa <- africa %>%
+  mutate(neg = as.factor(neg)) #ggplot wants this to be continuous so I made it a factor
+
+ggplot(africa, aes(x=country, y=gini_diff, fill=neg)) + 
+  geom_col(show.legend = FALSE) + 
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
+  theme_minimal() + coord_flip() +
+  theme(text = element_text(size=5),
+        axis.text.x = element_text(angle=90, hjust=1)) +
+  labs(title = "Difference from Mean Gini Value By African Country",
+    x = " Country",
+       y = "Difference from Mean (47)")
+ggsave("Figs/diff_mean_gini_africa.jpeg")
