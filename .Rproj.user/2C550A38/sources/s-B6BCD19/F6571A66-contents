@@ -36,8 +36,7 @@ ggplot(asia, aes(x=gini, y=..density.., fill=region_un_sub)) +
        y = "Density") + 
   scale_fill_viridis() +
   scale_fill_viridis(discrete = TRUE) 
-#I admit it is not an incredible color palette - but I can SEE it!
-ggsave("Figs/income_inequality_asia.jpeg")
+#ggsave("Figs/income_inequality_asia.jpeg")
 
 
 europe <- wiid %>%
@@ -51,7 +50,7 @@ ggplot(europe, aes(x=country, y=mean_gini)) + geom_point() + coord_flip() +
        y = "Mean Gini") + 
   scale_fill_viridis() +
   scale_fill_viridis(discrete = TRUE) 
-ggsave("Figs/europe_gini_scatter.jpeg")
+#ggsave("Figs/europe_gini_scatter.jpeg")
 
 africa <- wiid %>%
   filter(region_un == "Africa") %>%
@@ -77,7 +76,7 @@ ggplot(africa, aes(x=country, y=gini_diff, fill=neg)) +
   labs(title = "Difference from Mean Gini Value By African Country",
     x = " Country",
        y = "Difference from Mean (47)")
-ggsave("Figs/diff_mean_gini_africa.jpeg")
+#ggsave("Figs/diff_mean_gini_africa.jpeg")
 
 
 ggplot(wiid, aes(x=gini, y=..density.., fill=region_un)) + geom_histogram(alpha=.6) +
@@ -87,6 +86,46 @@ ggplot(wiid, aes(x=gini, y=..density.., fill=region_un)) + geom_histogram(alpha=
        fill = "Region",
        y = "Density")
 ##color-blind friendly
+
+med <- wiid %>%
+  filter(region_un == "Americas") %>%
+  group_by(region_un_sub, year) %>%
+  summarize(med_gini = median(gini, na.rm = TRUE))
+
+ggplot(med, aes(x=year, y=med_gini, color=region_un_sub)) + 
+  geom_point() + 
+  theme_minimal() +
+  labs(x = "Year",
+       color = "Region",
+       y = "Median Gini Coeff.") +
+  scale_color_manual(values=c("#f0e442", "#cc79a7", "#d55e00", "#009e73", "#0072b2"))
+  
+
+ggplot(med, aes(x=year, y=med_gini, color=region_un_sub)) + 
+  geom_smooth(alpha=.2) + 
+  theme_minimal() +
+  labs(x = "Year",
+       color = "Region",
+       y = "Median Gini Coeff.") +
+  scale_color_manual(values=c("#f0e442", "#cc79a7", "#d55e00", "#009e73", "#0072b2"))
+#ggsave("Figs/median_gini_americas.jpeg")
+
+distinct(movie, language)
+
+movie %>% count(language, color) %>%
+  arrange(language, color)
+
+vector1 <- c(1:10)
+vector2 <- c(1, 4, 11)
+
+vector1 %in% vector2 #a T/F for every element in v1
+vector2 %in% vector1 #a T/F for every element in v2
+
+###stuck
+
+#I have downloaded the stringr cheat sheet. My proof is in my github
+#
+
 
 
   

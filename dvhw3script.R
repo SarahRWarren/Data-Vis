@@ -88,5 +88,32 @@ ggplot(wiid, aes(x=gini, y=..density.., fill=region_un)) + geom_histogram(alpha=
        y = "Density")
 ##color-blind friendly
 
+med <- wiid %>%
+  filter(region_un == "Americas") %>%
+  group_by(region_un_sub, year) %>%
+  summarize(med_gini = median(gini, na.rm = TRUE))
+
+ggplot(med, aes(x=year, y=med_gini, color=region_un_sub)) + 
+  geom_point() + 
+  theme_minimal() +
+  labs(x = "Year",
+       color = "Region",
+       y = "Median Gini Coeff.") +
+  scale_color_manual(values=c("#f0e442", "#cc79a7", "#d55e00", "#009e73", "#0072b2"))
+  
+
+ggplot(med, aes(x=year, y=med_gini, color=region_un_sub)) + 
+  geom_smooth(alpha=.2) + 
+  theme_minimal() +
+  labs(x = "Year",
+       color = "Region",
+       y = "Median Gini Coeff.") +
+  scale_color_manual(values=c("#f0e442", "#cc79a7", "#d55e00", "#009e73", "#0072b2"))
+
+distinct(movie, language)
+
+movie %>% count(language, color) %>%
+  arrange(language, color)
+
 
   
