@@ -6,6 +6,8 @@
 library(tidyverse)
 library(readxl)
 library(viridis) #I am partially color blind, so yay viridis!
+library(gridExtra)
+library(grid)
 
 #############
 movie <- read_csv("movie.csv") %>%
@@ -36,8 +38,7 @@ ggplot(asia, aes(x=gini, y=..density.., fill=region_un_sub)) +
        y = "Density") + 
   scale_fill_viridis() +
   scale_fill_viridis(discrete = TRUE) 
-#I admit it is not an incredible color palette - but I can SEE it!
-ggsave("Figs/income_inequality_asia.jpeg")
+#ggsave("Figs/income_inequality_asia.jpeg")
 
 
 europe <- wiid %>%
@@ -51,7 +52,7 @@ ggplot(europe, aes(x=country, y=mean_gini)) + geom_point() + coord_flip() +
        y = "Mean Gini") + 
   scale_fill_viridis() +
   scale_fill_viridis(discrete = TRUE) 
-ggsave("Figs/europe_gini_scatter.jpeg")
+#ggsave("Figs/europe_gini_scatter.jpeg")
 
 africa <- wiid %>%
   filter(region_un == "Africa") %>%
@@ -77,7 +78,7 @@ ggplot(africa, aes(x=country, y=gini_diff, fill=neg)) +
   labs(title = "Difference from Mean Gini Value By African Country",
     x = " Country",
        y = "Difference from Mean (47)")
-ggsave("Figs/diff_mean_gini_africa.jpeg")
+#ggsave("Figs/diff_mean_gini_africa.jpeg")
 
 
 ggplot(wiid, aes(x=gini, y=..density.., fill=region_un)) + geom_histogram(alpha=.6) +
@@ -109,11 +110,96 @@ ggplot(med, aes(x=year, y=med_gini, color=region_un_sub)) +
        color = "Region",
        y = "Median Gini Coeff.") +
   scale_color_manual(values=c("#f0e442", "#cc79a7", "#d55e00", "#009e73", "#0072b2"))
+#ggsave("Figs/median_gini_americas.jpeg")
 
 distinct(movie, language)
 
 movie %>% count(language, color) %>%
   arrange(language, color)
 
+vector1 <- c(1:10)
+vector2 <- c(1, 4, 11)
 
-  
+vector1 %in% vector2 #a T/F for every element in v1
+vector2 %in% vector1 #a T/F for every element in v2
+
+###stuck
+
+#I have downloaded the stringr cheat sheet. My proof is in my github
+#https://github.com/SarahRWarren/Data-Vis
+
+movie %>% count(genres) # pipe delimited multi-genres
+
+movie$action <- str_detect(movie$genres, "Action")
+movie %>% count(action) #959 action movies
+
+movie$animated <- str_detect(movie$genres, "Animation")
+movie %>% count(animated) #196 animated movies
+
+movie$comedy <- str_detect(movie$genres, "Comedy")
+movie$drama <- str_detect(movie$genres, "Drama")
+
+#comedy
+c <- movie %>%
+  filter(comedy == TRUE & drama == FALSE) %>%
+  group_by(title_year) %>%
+  summarize(com_mean = mean(imdb_score, na.rm = TRUE)) %>%
+  glimpse()
+
+#drama
+d <- movie %>%
+  filter(comedy == FALSE & drama == TRUE) %>%
+  group_by(title_year) %>%
+  summarize(dram_mean = mean(imdb_score, na.rm = TRUE)) %>%
+  glimpse()
+
+#dramedy
+cd <- movie %>%
+  filter(comedy == TRUE & drama == TRUE) %>%
+  group_by(title_year) %>%
+  summarize(cd_mean = mean(imdb_score, na.rm = TRUE)) %>%
+  glimpse()
+
+fig <- merge(c, d, by = "title_year")
+fig <- merge(fig, cd, by = "title_year")
+#is this elegant? not really. did it work? I think.
+
+c <- ggplot(fig, aes(x=title_year, y=com_mean)) + geom_point() + geom_smooth(color = '#FF0000') +
+  theme_minimal() +
+  labs(title = "Comedy Scores By Year",
+       x = "Mean Imdb Score",
+       y = "Year")
+d<- ggplot(fig, aes(x=title_year, y=dram_mean)) + geom_point() + geom_smooth(color = "#0000FF") +
+  theme_minimal() +
+  labs(title = "Drama Scores By Year", 
+       x = "Mean Imdb Score",
+       y = "Year")
+cd <- ggplot(fig, aes(x=title_year, y=cd_mean)) + geom_point() + geom_smooth(color = "#6a0dad") +
+  theme_minimal() +
+  labs(title = "Dramedy Scores By Year",
+       x = "Mean Imdb Score",
+       y = "Year")
+grid.arrange(c,d,cd)
+#alt. grid.arrange(c,d,cd, ncol=3)
+#Problems: These arranged scatters are going to appear differently depending on the dimensions in which they're saved
+#They're not overlapping - is that a transparency issue? Their scales are almost identical, but off by 0.5
+#Advantages: I think it's easier to see this way, not overlapping, with only the lines colored
+
+df <- wiid %>%
+  filter(year > 1940)
+
+df2 <- select(df, -region_un)
+
+##tsv stuff
+
+ggplot(df, aes(x=year, y=gini)) + theme_minimal() +
+  geom_point(data = df2, colour = "grey70", alpha=.4) +
+  geom_point(alpha=.6, aes(colour = region_un)) + 
+  facet_wrap(~region_un) +
+  theme(axis.text.x = element_text(angle=45)) +
+  theme(legend.position = c(0.8, 0.2)) +
+  labs(title = "Gini Values Over Time",
+       x = " Year",
+       y = "Gini Coeff",
+       color = "Region")
+ggsave("Figs/gini_region_by_year.jpeg")
